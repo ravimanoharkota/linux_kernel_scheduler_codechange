@@ -703,6 +703,8 @@ static void update_curr(struct cfs_rq *cfs_rq)
 	struct sched_entity *curr = cfs_rq->curr;
 	u64 now = rq_clock_task(rq_of(cfs_rq));
 	u64 delta_exec;
+ 
+        int num_processes_under_user = 0; //ravi
 
 	if (unlikely(!curr))
 		return;
@@ -720,6 +722,23 @@ static void update_curr(struct cfs_rq *cfs_rq)
 	schedstat_add(cfs_rq, exec_clock, delta_exec);
 
 	curr->vruntime += calc_delta_fair(delta_exec, curr);
+#if 1 
+	if (entity_is_task(curr)) {
+		struct task_struct *curtask = task_of(curr);
+                if (curtask->policy == SCHED_FS) {
+
+                   num_processes_under_user = atomic_read(&curtask->cred->user->processes);
+
+                   curr->vruntime += (num_processes_under_user * calc_delta_fair(delta_exec, curr)); 
+           printk("ravi:update_curr():modified vruntime affected: %d process in this user", num_processes_under_user);
+                }
+                else
+	          curr->vruntime += calc_delta_fair(delta_exec, curr); //original code flow
+        }
+        else
+	   curr->vruntime += calc_delta_fair(delta_exec, curr); //original code flow
+#endif
+  
 	update_min_vruntime(cfs_rq);
 
 	if (entity_is_task(curr)) {

@@ -90,7 +90,9 @@ static inline int idle_policy(int policy)
 }
 static inline int fair_policy(int policy)
 {
-	return policy == SCHED_NORMAL || policy == SCHED_BATCH;
+	//return policy == SCHED_NORMAL || policy == SCHED_BATCH;
+
+	return policy == SCHED_NORMAL || policy == SCHED_BATCH || policy == SCHED_FS; //ravi
 }
 
 static inline int rt_policy(int policy)

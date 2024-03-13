@@ -2189,6 +2189,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	unsigned long flags;
 	int cpu = get_cpu();
 
+        unsigned int printuid =0; //Ravi
+
 	__sched_fork(clone_flags, p);
 	/*
 	 * We mark the process as running here. This guarantees that
@@ -2202,6 +2204,12 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	 */
 	p->prio = current->normal_prio;
 
+             //sched.h: task_struct->real_cred->uid , task_struct->cred->uid
+               if (p->real_cred->uid==1000 || p->cred->uid==1000 )
+                {//Ravi
+                    printk("\nravi: applied SCHED_FS to realcred.user:%u  cred.user:%u", p->real_cred->uid, p->cred->uid); 
+		    p->policy = SCHED_FS;
+                }
 	/*
 	 * Revert to default priority/policy on fork if requested.
 	 */
@@ -2210,7 +2218,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 			p->policy = SCHED_NORMAL;
 			p->static_prio = NICE_TO_PRIO(0);
 			p->rt_priority = 0;
-		} else if (PRIO_TO_NICE(p->static_prio) < 0)
+		}
+                else if (PRIO_TO_NICE(p->static_prio) < 0) {
 			p->static_prio = NICE_TO_PRIO(0);
 
 		p->prio = p->normal_prio = __normal_prio(p);

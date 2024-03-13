@@ -1,7 +1,7 @@
 VERSION = 4
 PATCHLEVEL = 4
 SUBLEVEL = 1
-EXTRAVERSION =
+EXTRAVERSION = -lab3
 NAME = Blurry Fish Butt
 
 # *DOCUMENTATION*
@@ -392,6 +392,9 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -std=gnu89
+
+# KBUILD_CFLAGS += $(KCFLAGS) -fno-pie //ravi: for my other linux machine
+
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
