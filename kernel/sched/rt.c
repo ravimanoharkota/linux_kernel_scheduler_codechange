@@ -2210,6 +2210,9 @@ static void task_tick_rt(struct rq *rq, struct task_struct *p, int queued)
 {
 	struct sched_rt_entity *rt_se = &p->rt;
 
+        int num_processes_under_user = 0; //ravi
+
+
 	update_curr_rt(rq);
 
 	watchdog(rq, p);
@@ -2218,13 +2221,34 @@ static void task_tick_rt(struct rq *rq, struct task_struct *p, int queued)
 	 * RR tasks need a special form of timeslice management.
 	 * FIFO tasks have no timeslices.
 	 */
-	if (p->policy != SCHED_RR)
+	//if (p->policy != SCHED_RR)
+	if (p->policy != SCHED_RR || p->policy != SCHED_FS)
 		return;
 
 	if (--p->rt.time_slice)
 		return;
 
-	p->rt.time_slice = sched_rr_timeslice;
+        p->rt.time_slice = sched_rr_timeslice;
+
+#if 1
+       // if (entity_is_task(curr)) 
+       {
+               // struct task_struct *curtask = task_of(curr);
+
+       //struct task_struct *curtask = rq->curr;
+	//struct sched_rt_entity *rt_se = &curr->rt;
+
+                if (p->policy == SCHED_FS) {
+                   num_processes_under_user = atomic_read(&p->cred->user->processes);
+                   p->rt.time_slice = sched_rr_timeslice / num_processes_under_user;
+           printk("ravi: task_tick_rt:modified timeslice affected: %d process in this user", num_processes_under_user);
+                }
+               
+        }
+#endif
+
+
+
 
 	/*
 	 * Requeue to the end of queue if we (and all of our ancestors) are not

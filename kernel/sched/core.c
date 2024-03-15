@@ -75,6 +75,8 @@
 #include <linux/context_tracking.h>
 #include <linux/compiler.h>
 
+#include <linux/uidgid.h>
+
 #include <asm/switch_to.h>
 #include <asm/tlb.h>
 #include <asm/irq_regs.h>
@@ -2189,8 +2191,6 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	unsigned long flags;
 	int cpu = get_cpu();
 
-        unsigned int printuid =0; //Ravi
-
 	__sched_fork(clone_flags, p);
 	/*
 	 * We mark the process as running here. This guarantees that
@@ -2204,12 +2204,6 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	 */
 	p->prio = current->normal_prio;
 
-             //sched.h: task_struct->real_cred->uid , task_struct->cred->uid
-               if (p->real_cred->uid==1000 || p->cred->uid==1000 )
-                {//Ravi
-                    printk("\nravi: applied SCHED_FS to realcred.user:%u  cred.user:%u", p->real_cred->uid, p->cred->uid); 
-		    p->policy = SCHED_FS;
-                }
 	/*
 	 * Revert to default priority/policy on fork if requested.
 	 */
@@ -2219,7 +2213,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 			p->static_prio = NICE_TO_PRIO(0);
 			p->rt_priority = 0;
 		}
-                else if (PRIO_TO_NICE(p->static_prio) < 0) {
+                else if (PRIO_TO_NICE(p->static_prio) < 0)
 			p->static_prio = NICE_TO_PRIO(0);
 
 		p->prio = p->normal_prio = __normal_prio(p);
@@ -2254,6 +2248,38 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	raw_spin_lock_irqsave(&p->pi_lock, flags);
 	set_task_cpu(p, cpu);
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
+
+
+#if 1
+
+           /* #define BAD_USER_MIN  KUIDT_INIT(1000)
+            #define BAD_USER_MAX  KUIDT_INIT(1099)
+
+            #define GOOD_USER_MIN  KUIDT_INIT(2000)
+            #define GOOD_USER_MAX  KUIDT_INIT(2050)
+           
+          */
+
+  if (uid_gte(p->cred->uid,KUIDT_INIT(1000)) && uid_lte(p->cred->uid,KUIDT_INIT(1099)))
+  {
+
+               if(task_has_rt_policy(p)) { 
+                  printk("\nravi: BAD_USER: applied SCHED_FS to realcred.user:%d  cred.user:%d", p->real_cred->uid,p->cred->uid);
+                    //  printk("BAD_USER: applied SCHED_FS ");
+                    p->sched_class = &rt_sched_class;
+                    p->nr_cpus_allowed = 1; //lets do this with 1 CPU only.
+		    p->policy = SCHED_FS;
+              }
+  }
+  else if (uid_gte(p->cred->uid,KUIDT_INIT(2000)) && uid_lte(p->cred->uid,KUIDT_INIT(2050)))
+  {
+                  printk("\nravi: GOOD_USER: do nothing !");
+  }
+  else { }
+
+  
+
+#endif
 
 #ifdef CONFIG_SCHED_INFO
 	if (likely(sched_info_on()))
