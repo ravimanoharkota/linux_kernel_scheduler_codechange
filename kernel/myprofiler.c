@@ -10,8 +10,21 @@
 #include <linux/seq_file.h>
 #include <linux/proc_fs.h>
 #include <linux/slab.h>
+#include <linux/sched.h>
+#include <linux/uaccess.h>
 
-static unsigned long my_scheduler_profiler=0; //Disabled by default
+struct sched_profiler_data {
+    u64 timestamp;
+    pid_t prev_pid;
+    pid_t next_pid;
+};
+
+static struct sched_profiler_data last_switch;
+
+//internal flag to know the internal state of enabled/disabled profiling.
+static unsigned long my_scheduler_profiler = 0; //Disabled by default
+//TODO: change var name better to "profiling_enabled"
+
 
 static struct proc_dir_entry *my_scheduler_profiler_proc;
 
@@ -40,11 +53,28 @@ asmlinkage long sys_myprofiler(unsigned long *my_scheduler_profiler_flag)
 	 return 0;
 }
 
+void profile_sched_switch(struct task_struct *prev, struct task_struct *next) {
+    if (!profiling_enabled)
+        return;
+
+    last_switch.timestamp = ktime_get_ns(); // Get the current timestamp in nanoseconds.
+    last_switch.prev_pid = prev->pid;       // Get the PID of the task being switched out.
+    last_switch.next_pid = next->pid;       // Get the PID of the task being switched in.
+
+    // TODO: Add code to write this data to a file or another logging mechanism.
+}
+EXPORT_SYMBOL_GPL(profile_sched_switch);
+
+
 static int my_sched_prof_show(struct seq_file *m, void *v)
 {
 
         printk("my_sched_prof_show() was called \n");
-	seq_printf(m, "%lu", &my_scheduler_profiler);
+	//seq_printf(m, "%lu", &my_scheduler_profiler);
+        
+        seq_printf(m, "Timestamp: %llu, Previous PID: %d, Next PID: %d\n",
+               last_switch.timestamp, last_switch.prev_pid, last_switch.next_pid);
+
         return 0;
 }
 

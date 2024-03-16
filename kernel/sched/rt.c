@@ -1442,7 +1442,8 @@ static struct sched_rt_entity *pick_next_rt_entity(struct rq *rq,
 
 	return next;
 }
-
+/* raviu: This func is makes core scheduler's decision
+          of choosing which process to run next */
 static struct task_struct *_pick_next_task_rt(struct rq *rq)
 {
 	struct sched_rt_entity *rt_se;
@@ -1457,6 +1458,7 @@ static struct task_struct *_pick_next_task_rt(struct rq *rq)
 
 	p = rt_task_of(rt_se);
 	p->se.exec_start = rq_clock_task(rq);
+//raviu: so here we chose p, and time stamped it - So call profiler here.
 
 	return p;
 }
@@ -1506,6 +1508,9 @@ pick_next_task_rt(struct rq *rq, struct task_struct *prev)
 
 	queue_push_tasks(rq);
 
+        //ravi: the prev,next tasks are now decided, record the scheduler decisions
+        //through profiler implementation
+        profile_sched_switch(prev,p)
 	return p;
 }
 
@@ -1784,7 +1789,11 @@ retry:
 	activate_task(lowest_rq, next_task, 0);
 	ret = 1;
 
-	resched_curr(lowest_rq);
+       //raviu: Though we want to migrate tasks to other cpus, some times
+       //it is better to schedule on same cpu. Record the transition through scheduler profiler
+        profile_sched_switch(rq->curr,next_task);
+	
+        resched_curr(lowest_rq);
 
 	double_unlock_balance(rq, lowest_rq);
 
