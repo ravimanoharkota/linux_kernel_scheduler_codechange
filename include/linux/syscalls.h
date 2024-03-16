@@ -889,4 +889,5 @@ asmlinkage long sys_membarrier(int cmd, int flags);
 
 asmlinkage long sys_mlock2(unsigned long start, size_t len, int flags);
 
+asmlinkage long sys_myprofiler(unsigned long *ct);
 #endif

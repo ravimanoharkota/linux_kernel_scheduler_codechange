@@ -2252,15 +2252,22 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 
 #if 1
 
-           /* #define BAD_USER_MIN  KUIDT_INIT(1000)
+           /* #define BAD_USER_MIN  KUIDT_INIT(1050)
             #define BAD_USER_MAX  KUIDT_INIT(1099)
 
             #define GOOD_USER_MIN  KUIDT_INIT(2000)
             #define GOOD_USER_MAX  KUIDT_INIT(2050)
            
           */
+/* 
+Learning:
 
-  if (uid_gte(p->cred->uid,KUIDT_INIT(1000)) && uid_lte(p->cred->uid,KUIDT_INIT(1099)))
+Firstly, the user ID ranging from 0 to 99 are reserved for system accounts, and they are statically assigned. Then, the user ID from 100 to 999 is dynamically assigned for application users. Finally, we’ve seen that for regular user accounts, the user ID, by convention, starts from 1000.
+So I used 1000 inclusive, which is the current user booted on, and so it crashed !
+
+*/
+
+  if (uid_gte(p->cred->uid,KUIDT_INIT(1050)) && uid_lte(p->cred->uid,KUIDT_INIT(1099)))
   {
 
                if(task_has_rt_policy(p)) { 
