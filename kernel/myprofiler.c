@@ -19,6 +19,7 @@ struct sched_profiler_data {
     pid_t next_pid;
 };
 
+
 static struct sched_profiler_data last_switch;
 
 //internal flag to know the internal state of enabled/disabled profiling.
@@ -47,14 +48,14 @@ asmlinkage long sys_myprofiler(unsigned long *my_scheduler_profiler_flag)
         }
         else
         {
-           printk("SUCCESS: configured scheduler profiler En/Dis function to %d !", my_scheduler_profiler);
+           printk("SUCCESS: configured scheduler profiler En/Dis function to %lu !", my_scheduler_profiler);
         }
 
 	 return 0;
 }
 
 void profile_sched_switch(struct task_struct *prev, struct task_struct *next) {
-    if (!profiling_enabled)
+    if (!my_scheduler_profiler)
         return;
 
     last_switch.timestamp = ktime_get_ns(); // Get the current timestamp in nanoseconds.
@@ -87,7 +88,7 @@ static int my_sched_prof_open(struct inode *inode, struct file *file)
 
 static ssize_t my_sched_prof_write(struct file *file, const char __user *buffer, size_t count, loff_t *pos)
 {
-	char *buf;
+	char *buf=NULL;
 	int value;
 
         //User passed in malicious buffer

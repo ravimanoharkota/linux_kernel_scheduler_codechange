@@ -14,6 +14,11 @@ static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun);
 
 struct rt_bandwidth def_rt_bandwidth;
 
+
+//ravi: ideally to be shifted to .h file of profiler code, as it is service provided by profiler chunk
+extern void profile_sched_switch(struct task_struct *prev, struct task_struct *next);
+
+  
 static enum hrtimer_restart sched_rt_period_timer(struct hrtimer *timer)
 {
 	struct rt_bandwidth *rt_b =
@@ -1510,7 +1515,7 @@ pick_next_task_rt(struct rq *rq, struct task_struct *prev)
 
         //ravi: the prev,next tasks are now decided, record the scheduler decisions
         //through profiler implementation
-        profile_sched_switch(prev,p)
+        profile_sched_switch(prev,p);
 	return p;
 }
 
