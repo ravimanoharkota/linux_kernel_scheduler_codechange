@@ -1,0 +1,5 @@
+/ *
+ * This codebase emerged when i was exploring the linux kernel scheduler and making some code changes
+ * in the lines of supporting processes taking more time on cpu etc. for my course demo assignment,
+ * Coding in the linux kernel space is real fun ! and with added hardware, its more !
+*/
